@@ -25,7 +25,7 @@ export default function AddExpenseScreen({ navigation }) {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCategoria, setShowCategoria] = useState(false);
 
-  // 👉 NOVO STATE (SUCESSO)
+  
   const [showSuccess, setShowSuccess] = useState(false);
 
   const categorias = [
@@ -60,7 +60,7 @@ export default function AddExpenseScreen({ navigation }) {
       const id = await insertGasto(descricao, categoria, valorNumerico, data);
 
       if (id) {
-        // 👉 MOSTRA MODAL DE SUCESSO
+        
         setShowSuccess(true);
       }
     } catch (error) {
@@ -132,7 +132,7 @@ export default function AddExpenseScreen({ navigation }) {
 
       </View>
 
-      {/* ✅ MODAL SUCESSO */}
+      
       <Modal visible={showSuccess} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.successModal}>
@@ -158,7 +158,7 @@ export default function AddExpenseScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* CALENDÁRIO */}
+      
       <Modal visible={showCalendar} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -182,7 +182,7 @@ export default function AddExpenseScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* CATEGORIA */}
+      
       <Modal visible={showCategoria} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -294,7 +294,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // 🔥 NOVO ESTILO SUCESSO
   successModal: {
     width: '80%',
     maxWidth: 350,

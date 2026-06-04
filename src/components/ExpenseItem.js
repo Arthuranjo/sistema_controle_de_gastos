@@ -43,7 +43,7 @@ export default function ExpenseItem({ item, onDelete }) {
         </View>
       </View>
 
-      {/* MODAL CUSTOMIZADO */}
+      
       {showConfirm && (
         <View style={styles.overlay}>
           <View style={styles.modal}>
