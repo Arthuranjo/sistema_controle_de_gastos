@@ -8,11 +8,14 @@ import {
   Alert,
   ScrollView,
   Modal,
+  Dimensions,
 } from 'react-native';
 import { insertGasto } from '../database/database';
 import { Calendar } from 'react-native-calendars';
 
 export default function AddExpenseScreen({ navigation }) {
+
+  const screenWidth = Dimensions.get('window').width;
 
   const [descricao, setDescricao] = useState('');
   const [categoria, setCategoria] = useState('');
@@ -21,6 +24,9 @@ export default function AddExpenseScreen({ navigation }) {
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCategoria, setShowCategoria] = useState(false);
+
+  // 👉 NOVO STATE (SUCESSO)
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const categorias = [
     { label: 'Alimentação', value: 'alimentacao' },
@@ -54,8 +60,8 @@ export default function AddExpenseScreen({ navigation }) {
       const id = await insertGasto(descricao, categoria, valorNumerico, data);
 
       if (id) {
-        Alert.alert('Sucesso', 'Gasto salvo!');
-        navigation.goBack();
+        // 👉 MOSTRA MODAL DE SUCESSO
+        setShowSuccess(true);
       }
     } catch (error) {
       console.log(error);
@@ -66,64 +72,96 @@ export default function AddExpenseScreen({ navigation }) {
   return (
     <ScrollView style={styles.container}>
 
-      <Text style={styles.title}>Novo Gasto</Text>
+      <View
+        style={[
+          styles.wrapper,
+          screenWidth > 768 && styles.wrapperWeb
+        ]}
+      >
 
-      <View style={styles.card}>
+        <Text style={styles.title}>Novo Gasto</Text>
 
-        {/* DESCRIÇÃO */}
-        <Text style={styles.label}>Descrição</Text>
-        <TextInput
-          style={styles.input}
-          value={descricao}
-          onChangeText={setDescricao}
-          placeholder="Ex: Almoço"
-          placeholderTextColor="#777"
-        />
+        <View style={styles.card}>
 
-        {/* CATEGORIA (CUSTOM DROPDOWN) */}
-        <Text style={styles.label}>Categoria</Text>
+          <Text style={styles.label}>Descrição</Text>
+          <TextInput
+            style={styles.input}
+            value={descricao}
+            onChangeText={setDescricao}
+            placeholder="Ex: Almoço"
+            placeholderTextColor="#777"
+          />
 
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowCategoria(true)}
-        >
-          <Text style={{ color: categoria ? '#fff' : '#777' }}>
-            {categoria
-              ? categorias.find(c => c.value === categoria)?.label
-              : 'Selecionar categoria'}
-          </Text>
-        </TouchableOpacity>
+          <Text style={styles.label}>Categoria</Text>
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() => setShowCategoria(true)}
+          >
+            <Text style={{ color: categoria ? '#fff' : '#777' }}>
+              {categoria
+                ? categorias.find(c => c.value === categoria)?.label
+                : 'Selecionar categoria'}
+            </Text>
+          </TouchableOpacity>
 
-        {/* VALOR */}
-        <Text style={styles.label}>Valor</Text>
-        <TextInput
-          style={styles.input}
-          value={valor}
-          onChangeText={formatarValor}
-          keyboardType="numeric"
-          placeholder="0,00"
-          placeholderTextColor="#777"
-        />
+          <Text style={styles.label}>Valor</Text>
+          <TextInput
+            style={styles.input}
+            value={valor}
+            onChangeText={formatarValor}
+            keyboardType="numeric"
+            placeholder="0,00"
+            placeholderTextColor="#777"
+          />
 
-        {/* DATA */}
-        <Text style={styles.label}>Data</Text>
+          <Text style={styles.label}>Data</Text>
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() => setShowCalendar(true)}
+          >
+            <Text style={{ color: data ? '#fff' : '#777' }}>
+              {data || 'Selecionar data'}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowCalendar(true)}
-        >
-          <Text style={{ color: data ? '#fff' : '#777' }}>
-            {data || 'Selecionar data'}
-          </Text>
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleSalvar}>
+          <Text style={styles.buttonText}>Salvar</Text>
         </TouchableOpacity>
 
       </View>
 
-      {/* MODAL CALENDÁRIO */}
+      {/* ✅ MODAL SUCESSO */}
+      <Modal visible={showSuccess} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.successModal}>
+
+            <Text style={styles.successTitle}>✅ Sucesso</Text>
+            <Text style={styles.successText}>
+              Novo gasto criado com sucesso!
+            </Text>
+
+            <TouchableOpacity
+              style={styles.successButton}
+              onPress={() => {
+                setShowSuccess(false);
+                navigation.goBack();
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+                OK
+              </Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
+
+      {/* CALENDÁRIO */}
       <Modal visible={showCalendar} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-
             <Calendar
               onDayPress={(day) => {
                 setData(day.dateString);
@@ -140,25 +178,14 @@ export default function AddExpenseScreen({ navigation }) {
                 selectedDayTextColor: '#fff',
               }}
             />
-
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowCalendar(false)}
-            >
-              <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-                Fechar
-              </Text>
-            </TouchableOpacity>
-
           </View>
         </View>
       </Modal>
 
-      {/* MODAL CATEGORIA */}
+      {/* CATEGORIA */}
       <Modal visible={showCategoria} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-
             {categorias.map((item) => (
               <TouchableOpacity
                 key={item.value}
@@ -173,24 +200,9 @@ export default function AddExpenseScreen({ navigation }) {
                 </Text>
               </TouchableOpacity>
             ))}
-
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowCategoria(false)}
-            >
-              <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-                Fechar
-              </Text>
-            </TouchableOpacity>
-
           </View>
         </View>
       </Modal>
-
-      {/* BOTÃO SALVAR */}
-      <TouchableOpacity style={styles.button} onPress={handleSalvar}>
-        <Text style={styles.buttonText}>Salvar</Text>
-      </TouchableOpacity>
 
     </ScrollView>
   );
@@ -200,7 +212,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0f0f0f',
+  },
+
+  wrapper: {
+    width: '100%',
     padding: 16,
+    alignSelf: 'center',
+  },
+
+  wrapperWeb: {
+    maxWidth: 750,
   },
 
   title: {
@@ -215,6 +236,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
   },
 
   label: {
@@ -254,17 +277,10 @@ const styles = StyleSheet.create({
 
   modalContent: {
     width: '90%',
+    maxWidth: 400,
     backgroundColor: '#1a1a1a',
     borderRadius: 16,
     padding: 10,
-  },
-
-  closeButton: {
-    marginTop: 10,
-    padding: 12,
-    backgroundColor: '#6200ee',
-    borderRadius: 10,
-    alignItems: 'center',
   },
 
   optionItem: {
@@ -276,5 +292,36 @@ const styles = StyleSheet.create({
   optionText: {
     color: '#fff',
     fontSize: 16,
+  },
+
+  // 🔥 NOVO ESTILO SUCESSO
+  successModal: {
+    width: '80%',
+    maxWidth: 350,
+    backgroundColor: '#1a1a1a',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+
+  successTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#00e676',
+    marginBottom: 10,
+  },
+
+  successText: {
+    color: '#ccc',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+
+  successButton: {
+    backgroundColor: '#6200ee',
+    padding: 12,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
   },
 });
